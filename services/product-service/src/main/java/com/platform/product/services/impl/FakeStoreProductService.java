@@ -1,6 +1,7 @@
 package com.platform.product.services.impl;
 
 import com.platform.product.dtos.FakeStoreProductDto;
+import com.platform.product.exception.ResourceNotFoundException;
 import com.platform.product.models.Category;
 import com.platform.product.models.Product;
 import com.platform.product.services.ProductService;
@@ -42,7 +43,7 @@ public class FakeStoreProductService implements ProductService {
                                                          FakeStoreProductDto.class
                                                  );
         // Convert FakeStore to Product Object
-        
+        if(productDto==null) throw new ResourceNotFoundException("Product not found");
         return convertFakeStoreProductDtoToProduct(productDto);
     }
     
