@@ -6,6 +6,7 @@ import com.platform.product.models.Category;
 import com.platform.product.models.Product;
 import com.platform.product.services.ProductService;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
@@ -15,9 +16,11 @@ import java.util.List;
 public class FakeStoreProductService implements ProductService {
     
     private final RestTemplate restTemplate;
+    private final RestClient restClient;
     
-    public FakeStoreProductService(RestTemplate restTemplate) {
+    public FakeStoreProductService(RestTemplate restTemplate, RestClient restClient) {
         this.restTemplate = restTemplate;
+        this.restClient = restClient;
     }
     
     private Product convertFakeStoreProductDtoToProduct(FakeStoreProductDto fakeStoreProductDto) {
@@ -36,6 +39,13 @@ public class FakeStoreProductService implements ProductService {
     
     @Override
     public Product getProductById(Long productId) {
+        
+        restClient
+                .get()
+                .uri( "https://fakestoreapi.com/products/" + productId)
+                .retrieve()
+                .body(FakeStoreProductDto.class);
+        
         //Make a Api call to Fake Store and get the product with the given Id.
         FakeStoreProductDto productDto = this.restTemplate
                                                  .getForObject(

@@ -6,14 +6,16 @@ import com.platform.user.models.User;
 import com.platform.user.repositories.TokenRepository;
 import com.platform.user.repositories.UserRepository;
 import com.platform.user.services.UserService;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.MacAlgorithm;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Optional;
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -61,12 +63,27 @@ public class UserServiceImpl implements UserService {
         
         Token token = new Token();
         token.setUser(user);
-        token.setTokenValue(RandomStringUtils.randomAlphabetic(128));
+       // token.setTokenValue(RandomStringUtils.randomAlphabetic(128));
         
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DAY_OF_YEAR, 30);
         Date dateAfter30Days = calendar.getTime();
-        token.setExpiryAt(dateAfter30Days);
+      //  token.setExpiryAt(dateAfter30Days);
+        
+        Map<String,Object> claims = new HashMap<>();
+        claims.put("iss","scalar.com");
+        claims.put("userid",user.getEmail());
+        claims.put("exp",dateAfter30Days);
+        claims.put("roles",user.getRoles());
+        
+        
+        MacAlgorithm macAlgorithm = Jwts.SIG.HS256;
+        SecretKey secretKey = macAlgorithm.key().build();
+        String tokenValue = Jwts.builder().claims(claims).signWith(secretKey).compact();
+       // String payload="";
+        //byte[] payLoadBytes=payload.getBytes(StandardCharsets.UTF_8);
+     //   String tokenValue = Jwts.builder().content(payLoadBytes).compact();
+        token.setTokenValue(tokenValue);
         token = tokenRepository.save(token);
         return token;
     }
